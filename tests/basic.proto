@@ -1,0 +1,9 @@
+message Message {
+    enum MessageType {
+        TEXT = 1;
+        EMAIL = 2;
+    }
+    optional string title = 1;
+    optional string content = 2;
+    optional MessageType type = 3;
+}
