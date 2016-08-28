@@ -7,3 +7,4 @@ node_js:
   - "iojs"
 before_script:
   - npm install -g jasmine
+  - node protobuf-compile.js tests
