@@ -25,6 +25,8 @@
   "dependencies": {
     "change-case": "^3.0.0",
     "command-line-args": "^3.0.1",
-    "pegjs": "^0.10.0"
+    "hogan.js": "^3.0.2",
+    "pegjs": "^0.10.0",
+    "uglify-js": "^2.7.3"
   }
 }

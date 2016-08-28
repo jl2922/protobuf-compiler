@@ -4,7 +4,7 @@
     "**/*_test.js"
   ],
   "helpers": [
-    "tests/**/*Proto.js"
+    "helpers/**/*Proto.js"
   ],
   "stopSpecOnExpectationFailure": false,
   "random": false
