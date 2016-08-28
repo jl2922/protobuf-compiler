@@ -1,9 +1,11 @@
+enum Type {
+    EMAIL = 1;
+    TEXT = 2;
+}
+
 message Message {
-    enum MessageType {
-        TEXT = 1;
-        EMAIL = 2;
-    }
-    optional string title = 1;
+    required string title = 1;
     optional string content = 2;
-    optional MessageType type = 3;
+    repeated Author author = 3;
+    optional Type type = 4;
 }

@@ -1,0 +1,101 @@
+(function() {
+  var root = this;
+
+  if (typeof exports !== 'undefined') {
+    if (typeof module !== 'undefined' && module.exports) {
+      exports = module.exports;
+    }
+    root = exports;
+  }
+  {{! Message definition.}}
+  {{#messages}}
+
+  var {{messageName}} = function() {};
+  {{messageName}}.Builder = function() {};
+  {{messageName}}.newBuilder = function() {
+    var builder = new {{messageName}}.Builder();
+    {{#fields}}
+    {{#repeated}}
+    builder.{{camelCaseFieldName}} = [];
+    {{/repeated}}
+    {{/fields}}
+    return builder;
+  };
+  {{#fields}}
+
+  {{#fields}}
+  {{#repeated}}
+  {{messageName}}.prototype.{{getterName}}List = function() {
+    return this.{{camelCaseFieldName}};
+  };
+  {{/repeated}}
+  {{^repeated}}
+  {{messageName}}.prototype.{{getterName}} = function() {
+    return this.{{camelCaseFieldName}};
+  };
+  {{/repeated}}
+  {{/fields}}
+
+  {{messageName}}.prototype.toJSON = function() {
+    var json = [];
+    var value;
+    {{#fields}}
+    value = this.{{camelCaseFieldName}};
+    if (value != undefined) {
+      json[{{index}} - 1] = value;
+    }
+    {{/fields}}
+    return json;
+  };
+
+  {{^repeated}}
+  {{messageName}}.Builder.prototype.{{setterName}} = function(value) {
+    this.{{camelCaseFieldName}} = value;
+    return this;
+  };
+  {{/repeated}}
+  {{#repeated}}
+  {{messageName}}.Builder.prototype.{{adderName}} = function(value) {
+    this.{{camelCaseFieldName}}.push(value);
+    return this;
+  };
+  {{/repeated}}
+  {{/fields}}
+
+  {{messageName}}.Builder.prototype.fromJSON = function(jsonString) {
+    var json = JSON.parse(jsonString);
+    var value;
+    {{#fields}}
+    value = json[{{index}} - 1];
+    if (value != undefined && value != null) {
+      this.{{camelCaseFieldName}} = value;
+    }
+    {{/fields}}
+    return this;
+  };
+
+  {{messageName}}.Builder.prototype.build = function() {
+    var message = new {{messageName}}();
+    {{#fields}}
+    message.{{camelCaseFieldName}} = this.{{camelCaseFieldName}};
+    {{#required}}
+    if (message.{{camelCaseFieldName}} == undefined) {
+      throw new Error("{{camelCaseFieldName}} is required.");
+    }
+    {{/required}}
+    {{/fields}}
+    return message;
+  };
+
+  root.{{messageName}} = {{messageName}};
+  {{/messages}}
+  {{! Enum Definition}}
+  {{#enums}}
+
+  var {{enumName}} = {};
+  {{#options}}
+  {{enumName}}.{{optionName}} = {{index}};
+  {{/options}}
+  root.{{enumName}} = {{enumName}};
+  {{/enums}}
+}).call(this);

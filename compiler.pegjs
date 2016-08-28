@@ -1,146 +1,87 @@
-{
-  var template = `
-(() => {
-  var root = this;
-
-  var protos = {};
-
-  if (typeof exports !== 'undefined') {
-    if (typeof module !== 'undefined' && module.exports) {
-      exports = module.exports = protos;
+start =
+_ terms:((Message / Enum) _)* {
+  var messages = [];
+  var enums = [];
+  for (var i = 0; i < terms.length; i++) {
+    var term = terms[i][0];
+    if (term._type == 'message') {
+      messages.push(term);
+    } else {
+      enums.push(term);
     }
-    exports.proto = protos;
-  } else {
-    root.proto = protos;
   }
-
-}
-`;
-
-  function makeInteger(o) {
-    return parseInt(o.join(""), 10);
-  }
-
-  var toCamelCase = (string, capitializeInitial) => {
-    capitializeInitial = !!capitializeInitial;
-    string = string.replace(/\_(.)/g, function(match, p1) {
-      return p1.toUpperCase();
-    });
-    if (capitializeInitial) {
-      string = string.replace(/^(.)/, (match) => {
-        return match.toUpperCase();
-      });
-    }
-    return string;
-  }
-}
-
-Expression = _ message:(Message _)* {
-  var definitions = [];
-  for (var i = 0; i < message.length; i++) {
-    definitions.push(message[i][0]);
-  }
-  definitions = definitions.join('\n\n');
-  var output = `
-(() => {
-  var root = this;
-
-  var protos = {};
-
-  if (typeof exports !== 'undefined') {
-    if (typeof module !== 'undefined' && module.exports) {
-      exports = module.exports = protos;
-    }
-    exports.proto = protos;
-  } else {
-    root.proto = protos;
-  }
-
-  ${definitions}
-
-}
-  `;
-  return output;
-}
-
-Message = "message" _ identifier:Identifier _ "{" _ rules:((Rule / ";") _)* "}" {
-  var messageDefinition = `
-  var ${identifier} = function() {};
-  ${identifier}.Builder = function() {};
-  ${identifier}.newBuilder = function() {
-    return new ${identifier}.Builder;
-  }
-  `;
-  for (var i = 0; i < rules.length; i++) {
-    var rule = rules[i][0];
-    if (rule[0] == ';') {
-      continue; // Empty rule.
-    }
-    var ruleDefintion = `
-  ${identifier}.Builder.prototype.${rule.setterName} = function(value) {
-    this.${rule.identifier} = value;
-    return this;
-  };
-    `;
-    console.log(rule);
-    messageDefinition += '\n' + ruleDefintion;
-  }
-  messageDefinition += `
-  root.${identifier} = ${identifier};
-  `;
-  return messageDefinition;
-}
-
-Rule = ("optional" / "required" / "repeated") _ Type _ identifier:Identifier _ "=" _ index:Integer _ ";" {
-  var lowerCamelCase = toCamelCase(identifier);
-  var upperCamelCase = toCamelCase(identifier, true);
   return {
-    identifier: lowerCamelCase,
-    index: index,
-    setterName: 'set' + upperCamelCase,
-    getterName: 'set' + upperCamelCase,
-    adderName: 'add' + upperCamelCase
+    messages: messages,
+    enums: enums
   };
 }
 
-Type = ("string" / "int32" / "int64" / "bool" / "float" / "double") {
+Enum =
+"enum" _ identifier:Identifier _ "{" _ terms:(Option _)* "}" {
+  var options = [];
+  for (var i = 0; i < terms.length; i++) {
+    options.push(terms[i][0]);
+  }
+  return {
+    enumName: identifier,
+    options: options,
+    _type: "enum"
+  };
+}
+
+Option =
+identifier:Identifier _ "=" _ index:Integer _ ";" {
+  return {
+    optionName: identifier,
+    index: index,
+    _type: "option"
+  };
+}
+
+Message =
+"message" _ identifier:Identifier _ "{" _ terms:((Field / ";") _)* "}" {
+  var fields = [];
+  for (var i = 0; i < terms.length; i++) {
+    var field = terms[i][0];
+    fields.push(field);
+  }
+  return {
+    messageName: identifier,
+    fields: fields,
+    _type: "message"
+  };
+}
+
+Identifier "identifier" =
+[_a-zA-Z]+[_a-zA-Z0-9]* {
   return text();
 }
 
-Expression1
-  = head:Term tail:(_ ("+" / "-") _ Term)* {
-  var result = head, i;
-  console.log(a);
-  for (i = 0; i < tail.length; i++) {
-    if (tail[i][1] === "+") { result += tail[i][3]; }
-    if (tail[i][1] === "-") { result -= tail[i][3]; }
-  }
-
-  return template;
+Field "field" =
+rule:FieldRule _ type:(PrimitiveType / Identifier) _
+identifier:Identifier _ "=" _ index:Integer _ ";" {
+  return {
+    optional: rule == 'optional',
+    repeated: rule == 'repeated',
+    required: rule == 'required',
+    fieldName: identifier,
+    type: type,
+    index: index,
+    _type: "field"
+  };
 }
 
-Term
-  = head:Factor tail:(_ ("*" / "/") _ Factor)* {
-  var result = head, i;
+FieldRule "field rule" =
+("optional" / "required" / "repeated")
 
-  for (i = 0; i < tail.length; i++) {
-    if (tail[i][1] === "*") { result *= tail[i][3]; }
-    if (tail[i][1] === "/") { result /= tail[i][3]; }
-  }
+PrimitiveType "primitive type"=
+("string" / "int32" / "int64" / "bool" / "float" / "double")
 
-  return result;
-}
+Integer "integer" =
+[0-9]+ { return parseInt(text(), 10); }
 
-Factor
-  = "(" _ expr:Expression _ ")" { return expr; }
-/ Integer
+Whitespace "whitespace" =
+[ \t\r\n]
 
-Integer "integer"
-  = [0-9]+ { return parseInt(text(), 10); }
-
-Identifier "identifier" = [_a-zA-Z]+[_a-zA-Z0-9]* {
-  return text();
-}
-
-_ "whitespace"
-  = [ \t\n\r]*
+_ "whitespaces" =
+Whitespace*

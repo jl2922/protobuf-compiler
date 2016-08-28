@@ -18,5 +18,13 @@
   "homepage": "https://github.com/jl2922/protobuf-compiler#readme",
   "devDependencies": {
     "pegjs": "^0.10.0"
+  },
+  "bin": {
+    "protobuf-compile": "./protobuf-compile.js"
+  },
+  "dependencies": {
+    "change-case": "^3.0.0",
+    "command-line-args": "^3.0.1",
+    "pegjs": "^0.10.0"
   }
 }
