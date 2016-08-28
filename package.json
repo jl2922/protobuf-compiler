@@ -1,8 +1,7 @@
 {
   "name": "protobuf-compiler",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Compile ProtoBuf .proto files to JavaScript .js classes.",
-  "main": "index.js",
   "scripts": {
     "test": "jasmine"
   },
@@ -10,7 +9,7 @@
     "type": "git",
     "url": "git+https://github.com/jl2922/protobuf-compiler.git"
   },
-  "author": "Junhao Li",
+  "author": "Junhao Li <streaver91@gmail.com>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/jl2922/protobuf-compiler/issues"
