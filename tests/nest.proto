@@ -1,0 +1,28 @@
+enum TypeDummy {
+    EMAIL = 1;
+    TEXT = 2;
+}
+
+message Message {
+    enum Type {
+        EMAIL = 1;
+        TEXT = 2;
+    }
+
+    message Author {
+
+        message Date {
+            optional int32 month = 1;
+            optional int32 day = 2;
+            optional int32 year = 3;
+        }
+
+        optional string name = 1;
+        optional Date birthday = 2;
+    }
+
+    required string title = 1;
+    optional string content = 2;
+    repeated Author author = 3;
+    optional Type type = 4;
+}

@@ -1,0 +1,7 @@
+(function() {
+  var {{enumName}} = {};
+  {{#enumFields}}
+  {{enumName}}.{{fieldName}} = {{fieldTag}};
+  {{/enumFields}}
+  return {{enumName}};
+})();

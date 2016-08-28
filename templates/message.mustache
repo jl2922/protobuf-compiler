@@ -1,101 +1,97 @@
 (function() {
-  var root = this;
-
-  if (typeof exports !== 'undefined') {
-    if (typeof module !== 'undefined' && module.exports) {
-      exports = module.exports;
-    }
-    root = exports;
-  }
-  {{! Message definition.}}
-  {{#messages}}
-
   var {{messageName}} = function() {};
+
+  // Fields.
   {{messageName}}.Builder = function() {};
   {{messageName}}.newBuilder = function() {
     var builder = new {{messageName}}.Builder();
-    {{#fields}}
-    {{#repeated}}
+    {{#messageFields}}
+    {{#isRepeated}}
     builder.{{camelCaseFieldName}} = [];
-    {{/repeated}}
-    {{/fields}}
+    {{/isRepeated}}
+    {{/messageFields}}
     return builder;
   };
-  {{#fields}}
 
-  {{#fields}}
-  {{#repeated}}
+  {{#messageFields}}
+  {{#isRepeated}}
   {{messageName}}.prototype.{{getterName}}List = function() {
     return this.{{camelCaseFieldName}};
   };
-  {{/repeated}}
-  {{^repeated}}
+  {{/isRepeated}}
+  {{^isRepeated}}
   {{messageName}}.prototype.{{getterName}} = function() {
     return this.{{camelCaseFieldName}};
   };
-  {{/repeated}}
-  {{/fields}}
+  {{/isRepeated}}
+  {{/messageFields}}
 
   {{messageName}}.prototype.toJSON = function() {
     var json = [];
     var value;
-    {{#fields}}
+    {{#messageFields}}
     value = this.{{camelCaseFieldName}};
     if (value != undefined) {
-      json[{{index}} - 1] = value;
+      json[{{fieldTag}} - 1] = value;
     }
-    {{/fields}}
+    {{/messageFields}}
     return json;
   };
 
-  {{^repeated}}
+  {{#messageFields}}
+  {{^isRepeated}}
   {{messageName}}.Builder.prototype.{{setterName}} = function(value) {
     this.{{camelCaseFieldName}} = value;
     return this;
   };
-  {{/repeated}}
-  {{#repeated}}
+  {{/isRepeated}}
+  {{#isRepeated}}
   {{messageName}}.Builder.prototype.{{adderName}} = function(value) {
     this.{{camelCaseFieldName}}.push(value);
     return this;
   };
-  {{/repeated}}
-  {{/fields}}
+  {{/isRepeated}}
+  {{/messageFields}}
 
   {{messageName}}.Builder.prototype.fromJSON = function(jsonString) {
     var json = JSON.parse(jsonString);
     var value;
-    {{#fields}}
-    value = json[{{index}} - 1];
+    {{#messageFields}}
+    value = json[{{fieldTag}} - 1];
     if (value != undefined && value != null) {
       this.{{camelCaseFieldName}} = value;
     }
-    {{/fields}}
+    {{/messageFields}}
     return this;
   };
 
   {{messageName}}.Builder.prototype.build = function() {
     var message = new {{messageName}}();
-    {{#fields}}
+    {{#messageFields}}
     message.{{camelCaseFieldName}} = this.{{camelCaseFieldName}};
-    {{#required}}
+    {{#isRequired}}
     if (message.{{camelCaseFieldName}} == undefined) {
       throw new Error("{{camelCaseFieldName}} is required.");
     }
-    {{/required}}
-    {{/fields}}
+    {{/isRequired}}
+    {{/messageFields}}
     return message;
   };
 
-  root.{{messageName}} = {{messageName}};
-  {{/messages}}
-  {{! Enum Definition}}
-  {{#enums}}
+  // Sub enums.
+  {{#subEnums}}
+  {{messageName}}.{{enumName}} = {{> enumDefinition}}
+  {{/subEnums}}
 
-  var {{enumName}} = {};
-  {{#options}}
-  {{enumName}}.{{optionName}} = {{index}};
-  {{/options}}
-  root.{{enumName}} = {{enumName}};
-  {{/enums}}
-}).call(this);
+  // Sub messages.
+  var _subMessages = {};
+  {{#subMessages}}
+  _subMessages.{{messageName}} = {{> messageDefinition}}
+  {{/subMessages}}
+
+  for (var subMessageName in _subMessages) {
+    {{messageName}}[subMessageName] = _subMessages[subMessageName];
+  }
+
+  return {{messageName}};
+})();

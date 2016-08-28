@@ -10,11 +10,14 @@ const peg = require('pegjs');
 
 const options = commandLineArgs([{name: 'input', type: String, defaultOption: true}]);
 
-const pegFile = path.resolve(__dirname, 'compiler.pegjs');
-const templateFile = path.resolve(__dirname, 'template.mustache');
-var template = hogan.compile(fs.readFileSync(templateFile, 'utf-8'));
-var parser = peg.generate(fs.readFileSync(pegFile, 'utf-8'));
-
+const loadFile = (filename) => {
+  var filepath = path.resolve(__dirname, filename);
+  return fs.readFileSync(filepath, 'utf-8');
+};
+const parser = peg.generate(loadFile('compiler.pegjs'));
+const mainTemplate = hogan.compile(loadFile('templates/main.mustache'));
+const enumPartial = hogan.compile(loadFile('templates/enum.mustache'));
+const messagePartial = hogan.compile(loadFile('templates/message.mustache'));
 const input = options['input'];
 
 const compile = (inputFile) => {
@@ -31,25 +34,35 @@ const compile = (inputFile) => {
   var AST = parser.parse(protoDefinition);
 
   // Insert camel case names and setter and getter for fields.
-  for (var i = 0; i < AST.messages.length; i++) {
-    var message = AST.messages[i];
-    for (var j = 0; j < message.fields.length; j++) {
-      var field = message.fields[j];
-      var fieldName = field.fieldName;
-      var camelCaseFieldName = changeCase.camelCase(fieldName);
-      var pascalCaseName = changeCase.pascalCase(fieldName);
-      field.camelCaseFieldName = camelCaseFieldName;
-      field.adderName = 'add' + pascalCaseName;
-      field.getterName = 'get' + pascalCaseName;
-      field.setterName = 'set' + pascalCaseName;
+  var insert = function(messages) {
+    for (var i = 0; i < messages.length; i++) {
+      var message = messages[i];
+      for (var j = 0; j < message.messageFields.length; j++) {
+        var field = message.messageFields[j];
+        var fieldName = field.fieldName;
+        var camelCaseFieldName = changeCase.camelCase(fieldName);
+        var pascalCaseName = changeCase.pascalCase(fieldName);
+        field.camelCaseFieldName = camelCaseFieldName;
+        field.adderName = 'add' + pascalCaseName;
+        field.getterName = 'get' + pascalCaseName;
+        field.setterName = 'set' + pascalCaseName;
+      }
+      insert(message.subMessages);
     }
-  }
+  };
+  insert(AST.messages);
 
-  var jsProtoDefinition = template.render(AST);
+  var jsProtoDefinition = mainTemplate.render(AST, {
+    enumDefinition: enumPartial,
+    messageDefinition: messagePartial
+  });
 
-  // jsProtoDefinition = uglifyJS.minify(jsProtoDefinition, {
-  //   fromString: true
-  // }).code;
+  jsProtoDefinition = uglifyJS.minify(jsProtoDefinition, {
+    fromString: true
+  }).code;
+
+  var banner = `/*! Compiled by protobuf-compiler on ${new Date()}. */\n`;
+  jsProtoDefinition = banner + jsProtoDefinition;
 
   fs.writeFileSync(outputFile, jsProtoDefinition);
 };

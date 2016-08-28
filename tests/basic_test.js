@@ -2,8 +2,8 @@ var basic = require('./basicProto');
 const Message = basic.Message;
 const Type = basic.Type;
 
-describe("basic message", function() {
-  it("should build a message from a basic proto.", function() {
+describe('basic protobuf', function() {
+  it('should build a message from a basic proto.', function() {
     var builder = Message.newBuilder();
     builder.setTitle('My title').setContent('My content').addAuthor('My Name').setType(Type.EMAIL);
     var message = builder.build();
@@ -33,5 +33,5 @@ describe("basic message", function() {
     builder.setTitle('My title').setContent('My content').addAuthor('My Name').setType(Type.EMAIL);
     var message = builder.build();
     expect(JSON.stringify(message)).toEqual('["My title","My content",["My Name"],1]');
-  })
+  });
 });

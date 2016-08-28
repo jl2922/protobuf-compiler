@@ -3,8 +3,10 @@ enum Type {
     TEXT = 2;
 }
 
+/* Message Description. */
 message Message {
-    required string title = 1;
+    /* More description. */
+    required string title = 1; // Field description.
     optional string content = 2;
     repeated Author author = 3;
     optional Type type = 4;

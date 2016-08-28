@@ -1,0 +1,20 @@
+(function() {
+  var root = this;
+
+  if (typeof exports !== 'undefined') {
+    if (typeof module !== 'undefined' && module.exports) {
+      exports = module.exports;
+    }
+    root = exports;
+  }
+
+  // Message definitions.
+  {{#messages}}
+  root.{{messageName}} = {{> messageDefinition}}
+  {{/messages}}
+
+  // Root enums.
+  {{#enums}}
+  root.{{enumName}} = {{> enumDefinition}}
+  {{/enums}}
+}).call(this);
