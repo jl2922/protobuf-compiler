@@ -11,13 +11,13 @@ sudo npm install -g protobuf-compiler
 
 ## Usage
 
-Compile with the command line interface.
+First compile protos with the command line interface:
 ```
 protobuf-compile example.proto # exports exampleProto.js.
 protobuf-compile exampleFolder # compiles all protoes in the folder.
 ```
 
-Import the generated js files and use.
+Then import the generated js files and use:
 
 ```js
 /* 
@@ -47,3 +47,12 @@ var requestFromJSON = Request.newBuilder().fromJSON(json).build();
 ```
 
 Check [`tests`](https://github.com/jl2922/protobuf-compiler/tree/master/tests) folder for more examples.
+
+Can also be used directly at frontend:
+
+```html
+<script src="basicProto.js"></script>
+<script>
+var author = Author.newBuilder().setName('My Name').build();
+</script>
+```
