@@ -1,0 +1,12 @@
+<script src="basicProto.js"></script>
+<script>
+var builder = Message.newBuilder();
+var author = Author.newBuilder().setName('My Name').build();
+builder.setTitle('My title').setContent('My content').addAuthor(author).setType(Type.EMAIL);
+var message = builder.build();
+console.log(message);
+console.log(JSON.stringify(message));
+</script>
+<body>
+Web usage test.
+</body>
