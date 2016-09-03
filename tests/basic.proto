@@ -11,3 +11,7 @@ message Message {
     repeated Author author = 3;
     optional Type type = 4;
 }
+
+message Author {
+    optional string name = 1;
+}

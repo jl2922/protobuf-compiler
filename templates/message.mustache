@@ -3,6 +3,7 @@
 
   // Fields.
   {{messageName}}.Builder = function() {};
+  {{messageName}}._isProtoMessage = true;
   {{messageName}}.newBuilder = function() {
     var builder = new {{messageName}}.Builder();
     {{#messageFields}}
@@ -53,11 +54,31 @@
   {{/isRepeated}}
   {{/messageFields}}
 
-  {{messageName}}.Builder.prototype.fromJSON = function(jsonString) {
-    var json = JSON.parse(jsonString);
+  {{messageName}}.Builder.prototype.fromJSON = function(json) {
+    if (typeof json == 'string') {
+      json = JSON.parse(json);
+    }
     var value;
     {{#messageFields}}
     value = json[{{fieldTag}} - 1];
+    var _toProto = function(value) {
+      if ({{messageName}}.{{fieldType}} != undefined && {{messageName}}.{{fieldType}}._isProtoMessage) {
+        return {{messageName}}.{{fieldType}}.newBuilder().fromJSON(value).build();
+      } else if (typeof {{fieldType}} == 'function' && {{fieldType}}._isProtoMessage) {
+        return {{fieldType}}.newBuilder().fromJSON(value).build();
+      } else if (typeof root.{{fieldType}} == 'function' && root.{{fieldType}}._isProtoMessage) {
+        return root.{{fieldType}}.newBuilder().fromJSON(value).build();
+      }
+      return value;
+    };
+    {{^isRepeated}}
+    value = _toProto(value);
+    {{/isRepeated}}
+    {{#isRepeated}}
+    for (var i = 0; i < value.length; i++) {
+      value[i] = _toProto(value[i]);
+    }
+    {{/isRepeated}}
     if (value != undefined && value != null) {
       this.{{camelCaseFieldName}} = value;
     }
